@@ -36,7 +36,7 @@ H = logical([
     ]);
 
 % Maximum number of iterations
-MAX_ITER = 100;
+MAX_ITER = 1000;
 
 % Loop for the tests
 fprintf('+--------------------------------------------------------------------------------------------------------------------------+\n')
@@ -56,8 +56,9 @@ for n = 1:N_data
     
     % Run the decoders
     % Replace i with your group number.
-    c_hard = HARD_DECODER_GROUPEi(c_ds_flip, H, MAX_ITER);
-    c_soft = SOFT_DECODER_GROUPEi(c_ds_flip, H, P1_ds, MAX_ITER);
+    c_hard = HARD_DECODER_GROUPE1(c_ds_flip, H, MAX_ITER);
+    c_soft = SOFT_DECODER_GROUPE1(c_ds_flip, H, P1_ds, MAX_ITER);
+    %c_soft = SOFT_DECODER_EXEMPLE(c_ds_flip, H, P1_ds, MAX_ITER);
     
     % Comparison with the flipped codeword
     fprintf('%12s\t|\t', string(isequal(c_ds_true , c_ds_flip)))
@@ -72,4 +73,5 @@ for n = 1:N_data
     fprintf('%18s\t', string(isequal(c_hard, c_ds_hard)))
     fprintf('%18s |\n', string(isequal(c_soft, c_ds_soft)))
 end
+
 fprintf('+--------------------------------------------------------------------------------------------------------------------------+\n')
