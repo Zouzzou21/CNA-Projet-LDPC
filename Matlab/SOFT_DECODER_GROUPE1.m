@@ -34,7 +34,7 @@ function updated_probs = updateProbabilities(matrix_H, probs)
             for i = 1:length(selected_probs)
                 target_probs = selected_probs;
                 target_probs(i) = [];
-                updated_probs(selected_indices(i)) = 1 - calculateBibou(target_probs);
+                updated_probs(selected_indices(i)) = 1 - calculateFproba(target_probs);
             end
         end
     end
@@ -50,13 +50,13 @@ function updated_code_probs = updateCodeBits(code, result_probs, channel_probs)
  
         if ~isempty(selected_indices)
             selected_result_probs = result_probs(selected_indices);
-            updateBoubou(i, selected_result_probs, channel_probs);
+            calculateCproba(i, selected_result_probs, channel_probs);
         end
     end
 end
  
-% Function to calculate the Bibou value
-function result = calculateBibou(target_probs)
+% Function to calculate the F-nodes probabilities
+function result = calculateFproba(target_probs)
     product = 1;
     
     % Multiply the factors for each probability
@@ -64,18 +64,18 @@ function result = calculateBibou(target_probs)
         product = product * (1 - 2 * target_probs(i));
     end
  
-    % Compute the final Bibou value
+    % Compute the final F-nodes probabilities
     result = 0.5 + product / 2;
 end
  
-% Function to update Boubou probabilities
-function updateBoubou(index, result_probs, channel_probs)
+% Function to update C-nodes probabilities
+function calculateCproba(index, result_probs, channel_probs)
     prob_1 = calculateProbaU(index, result_probs, channel_probs);
     prob_0 = calculateProbaZ(index, result_probs, channel_probs);
     total_prob = prob_1 + prob_0;
     scaling_factor = 1 / total_prob;
  
-    % Update the channel probabilities based on Boubou values
+    % Update the channel probabilities based on C-nodes probabilities
     channel_probs(index) = scaling_factor * prob_1;
 end
  
