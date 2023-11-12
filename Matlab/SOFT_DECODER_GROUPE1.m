@@ -1,97 +1,106 @@
-% n = 8;
-% m = 4;
-% iterations = 2;
-% 
-% C = [1, 0, 0, 0, 0, 1, 0, 1];
-% P = [0.9332, 0.0098, 0.0538, 0.2117, 0.9999, 0.9995, 0.0090, 0.9997];
-% Probas = P;
-% 
-% H = [
-%     0, 1, 0, 1, 1, 0, 0, 1;
-%     1, 1, 1, 0, 0, 1, 0, 0;
-%     0, 0, 1, 0, 0, 1, 1, 1;
-%     1, 0, 0, 1, 1, 0, 1, 0
-% ];
-
-
-function c_cor = SOFT_DECODER_GROUPE1(c_ds_flip, H, P1_ds, MAX_ITER)
-    C = c_ds_flip';
-    Probas = P1_ds;
-    iterations = MAX_ITER;
-%     fprintf('MESSAGE : %s\n', mat2str(C));
+function corrected_code = SOFT_DECODER_GROUPE1(input_code_flip, parity_matrix, channel_probabilities, max_iterations)
+    % Initialize variables
+    code = input_code_flip'; % Transpose the input code for correct orientation
+    probabilities = channel_probabilities;
+    iterations = max_iterations;
+ 
+    % Iterate through decoding process
     for iter = 1:iterations
-%         fprintf('  ITERATION : %d\n', iter);
-%         fprintf('  Probas : %s\n', mat2str(Probas));
-        Resultat = [];
-        Traite = [];
-        for ligne = 1:size(H,1)
-            inter = [];
-            for col = 1:size(H,2)
-                if H(ligne, col) == 1
-                    Traite = [Traite, col];
-                    inter = [inter, Probas(col)];
-                end
-            end
-%             fprintf('    Inter : %s\n', mat2str(inter));
-            for i = 1:length(inter)
-                BibouTarget = inter;
-                BibouTarget(i) = [];
-                Resultat = [Resultat, 1 - Bibou(BibouTarget)];
-            end
-%             fprintf('    Resultat : %s\n', mat2str(Resultat));
-%             fprintf('    Traite : %s\n', mat2str(Traite));
-        end
-        for i = 1:length(C)
-            Aboubou = [];
-            for j = 1:length(Resultat)
-                if i == Traite(j)
-                    Aboubou = [Aboubou, Resultat(j)];
-                end
-            end
-            Boubou(i, Aboubou, Probas);
-        end
+        updated_probabilities = updateProbabilities(parity_matrix, probabilities);
+        probabilities = updateCodeBits(code, updated_probabilities, probabilities);
     end
-    res = zeros(1, size(H,2));
-    for i = 1:length(Probas)
-        if Probas(i) > 0.5
-            res(i) = 1;
-        else
-            res(i) = 0;
-        end
+ 
+    % Make final decision on corrected code
+    corrected_bits = zeros(1, size(parity_matrix, 2));
+    for i = 1:length(probabilities)
+        corrected_bits(i) = (probabilities(i) > 0.5); % Thresholding to make the final decision
     end
-%     fprintf('%s ==> %s\n', mat2str(C), mat2str(res));
-    c_cor = res';
-    return
+ 
+    corrected_code = corrected_bits'; % Transpose back to the original orientation
 end
-
-function res = Bibou(BibouTarget)
-    inter = 1;
-    for i = 1:length(BibouTarget)
-        inter = inter * (1 - 2 * BibouTarget(i));
-    end
-    res = 0.5 + inter / 2;
-end
+ 
+% Function to update probabilities based on parity matrix
+function updated_probs = updateProbabilities(matrix_H, probs)
+    updated_probs = zeros(1, size(matrix_H, 2));
     
-function Boubou(i, Aboubou, Probas)
-    pb1 = ProbaU(i, Aboubou, Probas);
-    pb0 = ProbaZ(i, Aboubou, Probas);
-    pb = pb1 + pb0;
-    k = 1 / pb;
-    Probas(i) = k * pb1;
-end
-
-function res = ProbaZ(i, Aboubou, Probas)
-    inter = 1;
-    for k = 1:length(Aboubou)
-        inter = inter * Aboubou(k);
+    % Iterate through rows of the parity matrix
+    for row = 1:size(matrix_H, 1)
+        selected_indices = find(matrix_H(row, :) == 1);
+ 
+        if ~isempty(selected_indices)
+            selected_probs = probs(selected_indices);
+ 
+            % Update probabilities for each selected index
+            for i = 1:length(selected_probs)
+                target_probs = selected_probs;
+                target_probs(i) = [];
+                updated_probs(selected_indices(i)) = 1 - calculateBibou(target_probs);
+            end
+        end
     end
-    res = (1 - Probas(i)) * inter;
 end
-
-function res = ProbaU(i, Aboubou, Probas)
-    inter = 1;
-    for k = 1:length(Aboubou)
-        inter = inter * Aboubou(k);
+ 
+% Function to update code probabilities based on result probabilities
+function updated_code_probs = updateCodeBits(code, result_probs, channel_probs)
+    updated_code_probs = channel_probs;
+ 
+    % Iterate through rows of the code matrix
+    for i = 1:size(code, 1)
+        selected_indices = find(code(i, :) == 1);
+ 
+        if ~isempty(selected_indices)
+            selected_result_probs = result_probs(selected_indices);
+            updateBoubou(i, selected_result_probs, channel_probs);
+        end
     end
-    res = Probas(i) * inter;
+end
+ 
+% Function to calculate the Bibou value
+function result = calculateBibou(target_probs)
+    product = 1;
+    
+    % Multiply the factors for each probability
+    for i = 1:length(target_probs)
+        product = product * (1 - 2 * target_probs(i));
+    end
+ 
+    % Compute the final Bibou value
+    result = 0.5 + product / 2;
+end
+ 
+% Function to update Boubou probabilities
+function updateBoubou(index, result_probs, channel_probs)
+    prob_1 = calculateProbaU(index, result_probs, channel_probs);
+    prob_0 = calculateProbaZ(index, result_probs, channel_probs);
+    total_prob = prob_1 + prob_0;
+    scaling_factor = 1 / total_prob;
+ 
+    % Update the channel probabilities based on Boubou values
+    channel_probs(index) = scaling_factor * prob_1;
+end
+ 
+% Function to calculate probability for Z
+function prob_Z = calculateProbaZ(index, result_probs, channel_probs)
+    product = 1;
+ 
+    % Multiply the factors for each result probability
+    for k = 1:length(result_probs)
+        product = product * result_probs(k);
+    end
+ 
+    % Compute the final probability for Z
+    prob_Z = (1 - channel_probs(index)) * product;
+end
+ 
+% Function to calculate probability for U
+function prob_U = calculateProbaU(index, result_probs, channel_probs)
+    product = 1;
+ 
+    % Multiply the factors for each result probability
+    for k = 1:length(result_probs)
+        product = product * result_probs(k);
+    end
+ 
+    % Compute the final probability for U
+    prob_U = channel_probs(index) * product;
 end
