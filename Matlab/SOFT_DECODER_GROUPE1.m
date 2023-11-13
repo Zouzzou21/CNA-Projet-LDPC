@@ -29,7 +29,7 @@ function c_cor = SOFT_DECODER_GROUPE1(c, H, p, MAX_ITER)
             for j = 1:h_cols
                 
                 % Compute the product of every row
-                total_products = prod(1-2*inputs, 2);
+                total_products = prod(1 - 2 * inputs, 2);
                 
                 % This products simplifies the amount of calculations we'll
                 % need to do. In fact, every factors in the row
@@ -111,6 +111,48 @@ function c_cor = SOFT_DECODER_GROUPE1(c, H, p, MAX_ITER)
             
         end
         
+        % Now is the time to check wheter the newly obtained c fulfills the
+        % partity condition.
+        % It it fits, the iterations stops. Otherwise, they continue until
+        % they reach MAX_ITER
+        
+        if parity_check(c_cor, H) == 1
+            return
+        end
+        
     end
     
+end
+
+
+function parity_fulfilled = parity_check(c, H)
+
+    [h_rows, h_cols] = size(H);
+    
+    % h_rows is the amount of check nodes
+    % h_cols is the amount of variable nodes
+    
+    
+    % Define a vector to holds parity information amoung the rows of H
+    h_row_evenness = zeros(h_rows, 1);
+    for i = 1:h_rows
+        row_even = 0;
+        for j = 1:h_cols
+            if H(i, j)  == 1
+                
+                % For every link, verify that the bit of c stays even
+                row_even = mod(row_even + c(j), 2);
+                
+            end
+        end
+        h_row_evenness(i) = row_even;    
+    end
+    
+    % Now, sum the row evenness to globally verify the condition
+    if sum(h_row_evenness) == 0
+        parity_fulfilled = 1;
+    else
+        parity_fulfilled = 0;
+    end
+
 end
