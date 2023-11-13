@@ -4,14 +4,14 @@ function c_cor = SOFT_DECODER_GROUPE1(c, H, p, MAX_ITER)
     c_cor = c;
     
     % Create vectors full of ones to later hold the layer inputs
-    c_node_in = 1 * ones(h_rows, h_cols);
-    v_node_in = 1 * ones(h_rows, h_cols);
+    inputs = ones(h_rows, h_cols);
+    outputs = ones(h_rows, h_cols);
     
     % Initialise c_node_in with APP (a posteriori probabilities)
     for i = 1:h_rows
         for j = 1:h_cols
             if H(i, j)
-                c_node_in(i, j) = p(j);
+                inputs(i, j) = p(j);
             end
         end
     end
@@ -29,7 +29,7 @@ function c_cor = SOFT_DECODER_GROUPE1(c, H, p, MAX_ITER)
             for j = 1:h_cols
                 
                 % Compute the product of every row
-                total_products = prod(1-2*c_node_in, 2);
+                total_products = prod(1-2*inputs, 2);
                 
                 % This products simplifies the amount of calculations we'll
                 % need to do. In fact, every factors in the row
@@ -38,7 +38,7 @@ function c_cor = SOFT_DECODER_GROUPE1(c, H, p, MAX_ITER)
                 
                 % Divide the preceding product by the current value
                 % ... And set it to be the input of the v-nodes
-                v_node_in(i, j) = 0.5 + 0.5 * (total_products(i) / (1 - 2*c_node_in(i, j)));
+                outputs(i, j) = 0.5 + 0.5 * (total_products(i) / (1 - 2*inputs(i, j)));
                 
             end
         end
@@ -49,9 +49,9 @@ function c_cor = SOFT_DECODER_GROUPE1(c, H, p, MAX_ITER)
         for j = 1:h_cols  % do for every v-node, knowing there's h_cols v-nodes
             
             % Extract the colunm we're working in
-            col = v_node_in(:, j);
+            col = outputs(:, j);
             % and compute the products, as we did earlier
-            total_products = prod(v_node_in, 1);
+            total_products = prod(outputs, 1);
             
             % Compute first but wrong values of q1 and q2 ...
             q1 = (1 - p(j)) * total_products(j);
@@ -95,14 +95,14 @@ function c_cor = SOFT_DECODER_GROUPE1(c, H, p, MAX_ITER)
                 % not for the whole v-node. The only difference, is the
                 % division of the total products by the received input, as
                 % explained previously for the c-node
-                q1_link = (1 - p(j)) * total_products(j) / v_node_in(i, j);
-                q2_link = p(j) * prod(nonzeros(1 - col), 1) / (1 - v_node_in(i, j));
+                q1_link = (1 - p(j)) * total_products(j) / outputs(i, j);
+                q2_link = p(j) * prod(nonzeros(1 - col), 1) / (1 - outputs(i, j));
                 
                 % Re-compute the K factor for the link ...
                 K_link = 1 / (q1_link + q2_link);
                 
                 % ... and finally update with the correct values
-                c_node_in(i, j) = K_link * q1_link;
+                inputs(i, j) = K_link * q1_link;
                 
                 % NOTE : For the sake of simplicity, we directly assign the
                 % correct q1_link to the c_node_in matrix but multiplying
