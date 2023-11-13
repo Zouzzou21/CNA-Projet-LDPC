@@ -1,4 +1,4 @@
-function c_cor = SOFT_DECODER_GROUPE1(c_ds_flip, H, P1_ds, MAX_ITER)
+function c_cor = SOFT_DECODER_GROUPE1(c, H, p, MAX_ITER)
 
     % [c_rows, c_cols] = size(c_ds_flip);
     [h_rows, h_cols] = size(H);
@@ -11,7 +11,7 @@ function c_cor = SOFT_DECODER_GROUPE1(c_ds_flip, H, P1_ds, MAX_ITER)
     for i = 1:h_rows
         for j = 1:h_cols
             if H(i, j)
-                c_node_in(i, j) = P1_ds(j);
+                c_node_in(i, j) = p(j);
             end
         end
     end
@@ -27,5 +27,4 @@ function c_cor = SOFT_DECODER_GROUPE1(c_ds_flip, H, P1_ds, MAX_ITER)
             end
         end
     end
-
 end
