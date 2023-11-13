@@ -1,3 +1,9 @@
+% Léo BONNAIRE
+% Léonard PRINCÉ
+% Lucas LANDY
+% Étienne CAMBRAY-LAGASSY
+% Alan JUMEAUCOUR
+% LDPC SOFT DECODER
 function c_cor = SOFT_DECODER_GROUPE1(c, H, p, MAX_ITER)
 
     [h_rows, h_cols] = size(H);

@@ -64,12 +64,14 @@ for n = 1:N_data
 
     % Comparison with the true codeword
     % If they return 1, the two vectors are equal.
-    fprintf('%12s\t', string(isequal(c_ds_true, c_hard)))
+%     fprintf('%12s\t', string(isequal(c_ds_true, c_hard)))
+    fprintf('\t')
     fprintf('%12s\t|\t', string(isequal(c_ds_true, c_soft)))
     
     % Comparison with corrected data form the dataset
     % If they return 1, the two vectors are equal.
-    fprintf('%18s\t', string(isequal(c_hard, c_ds_hard)))
+%     fprintf('%18s\t', string(isequal(c_hard, c_ds_hard)))
+    fprintf('\t')
     fprintf('%18s |\n', string(isequal(c_soft, c_ds_soft)))
 end
 fprintf('+--------------------------------------------------------------------------------------------------------------------------+\n')
